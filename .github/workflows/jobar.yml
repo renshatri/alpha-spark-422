@@ -1,0 +1,38 @@
+name: jobar
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  jobar:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        runner_id: [1,2,3,4]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Chromium
+        run: |
+          sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu|https://mirrors.xmission.com/ubuntu|g; s|http://azure.archive.ubuntu.com/ubuntu/|https://mirrors.xmission.com/ubuntu/|g' /etc/apt/apt-mirrors.txt && sudo apt clean && sudo apt update
+          wget -O google-chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+          sudo dpkg -i chromium.deb
+          sudo apt install -f
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Additional Run
+        run: node index.js
+        env:
+          RUNNER_ID: ${{ matrix.runner_id }}
